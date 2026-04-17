@@ -1,113 +1,46 @@
-// =======================
-// GLOBAL STATE (ZERO TRUST)
-// =======================
+// =====================
+// GLOBAL STATE
+// =====================
 let stream;
 let currentFacingMode = "user";
 
-// =======================
-// LOG SYSTEM
-// =======================
+// =====================
+// LOG
+// =====================
 function log(msg) {
   document.getElementById("output").innerText += msg + "\n";
 }
 
-// =======================
+// =====================
 // ANALYZE ENGINE
-// =======================
+// =====================
 function analyze() {
   const input = document.getElementById("input").value.toLowerCase();
 
   document.getElementById("output").innerText = "";
 
-  log("🧠 Analyzing input...");
+  log("🧠 Analyzing...");
 
   if (input.includes("mongodb")) {
-    if (input.includes("mongodb+srv://")) {
-      log("✔ MongoDB format OK");
-    } else {
-      log("❌ Invalid MongoDB URI");
-    }
+    log(input.includes("mongodb+srv://") ? "✔ Mongo OK" : "❌ Mongo broken");
   }
 
   if (input.includes("supabase")) {
-    if (input.includes("anon") || input.includes("key")) {
-      log("✔ Supabase config detected");
-    } else {
-      log("⚠ Missing Supabase key");
-    }
+    log(input.includes("anon") ? "✔ Supabase OK" : "⚠ Missing key");
   }
 
-  if (input.includes("render")) {
-    log("✔ Render deployment detected");
-  }
+  if (input.includes("render")) log("✔ Render detected");
 
-  if (input.includes("github")) {
-    log("✔ GitHub workflow detected");
-  }
-
-  log("✔ Analysis complete");
+  log("✔ Done");
 }
 
-// =======================
-// AUTO FIX ENGINE
-// =======================
-function autoFix() {
-  let input = document.getElementById("input").value;
-
-  log("🛠 Running auto-fix...");
-
-  input = input.replace("<password>", "YOUR_PASSWORD");
-
-  if (!input.includes("NODE_ENV")) {
-    input += "\nNODE_ENV=production";
-  }
-
-  document.getElementById("input").value = input;
-
-  log("✔ Auto-fix applied");
-}
-
-// =======================
-// PROJECT GENERATOR
-// =======================
-function generate() {
-  const name = document.getElementById("project").value || "app";
-
-  const server =
-`const express = require("express");
-const app = express();
-
-app.get("/", (req,res)=>res.send("${name} running"));
-
-app.listen(process.env.PORT || 3000);`;
-
-  const env =
-`DATABASE_URL=your_mongo_here
-NODE_ENV=production`;
-
-  const render =
-`services:
-  - type: web
-    name: ${name}
-    env: node
-    buildCommand: npm install
-    startCommand: node server.js`;
-
-  document.getElementById("generated").innerText =
-`SERVER.JS\n\n${server}\n\n.ENV\n\n${env}\n\nRENDER.YAML\n\n${render}`;
-
-  log("📦 Project generated");
-}
-
-// =======================
-// CAMERA SYSTEM
-// =======================
+// =====================
+// CAMERA START
+// =====================
 async function startCamera() {
   const video = document.getElementById("video");
 
-  if (stream) {
-    stream.getTracks().forEach(t => t.stop());
-  }
+  if (stream) stream.getTracks().forEach(t => t.stop());
 
   stream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: currentFacingMode }
@@ -115,24 +48,22 @@ async function startCamera() {
 
   video.srcObject = stream;
 
-  log("📷 Camera started (" + currentFacingMode + ")");
+  log("📷 Camera started");
 }
 
-// =======================
-// FLIP CAMERA FIX
-// =======================
+// =====================
+// FLIP CAMERA
+// =====================
 function flipCamera() {
-  currentFacingMode = (currentFacingMode === "user") ? "environment" : "user";
-
-  log("🔄 Switching camera...");
-
+  currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
   startCamera();
+  log("🔄 Camera flipped");
 }
 
-// =======================
-// CAPTURE FRAME
-// =======================
-function capture() {
+// =====================
+// 📸 REAL OCR SCAN
+// =====================
+async function captureOCR() {
   const video = document.getElementById("video");
 
   const canvas = document.createElement("canvas");
@@ -142,10 +73,46 @@ function capture() {
   const ctx = canvas.getContext("2d");
   ctx.drawImage(video, 0, 0);
 
-  const imageData = canvas.toDataURL("image/png");
+  const image = canvas.toDataURL("image/png");
 
-  document.getElementById("input").value =
-    "IMAGE_FRAME_READY_FOR_OCR_PIPELINE";
+  log("🔍 Running OCR...");
 
-  log("📸 Frame captured (OCR-ready)");
+  const result = await Tesseract.recognize(image, "eng");
+
+  const text = result.data.text;
+
+  document.getElementById("input").value = text;
+
+  log("✔ OCR extracted text");
+}
+
+// =====================
+// GITHUB REPO SCANNER (basic fetch)
+// =====================
+async function scanRepo() {
+  const url = document.getElementById("repo").value;
+
+  document.getElementById("repoOut").innerText = "Scanning repo...";
+
+  try {
+    const api = url
+      .replace("https://github.com/", "")
+      .split("/");
+
+    const user = api[0];
+    const repo = api[1];
+
+    const res = await fetch(`https://api.github.com/repos/${user}/${repo}`);
+
+    const data = await res.json();
+
+    document.getElementById("repoOut").innerText =
+      "Repo: " + data.full_name +
+      "\nStars: " + data.stargazers_count +
+      "\nLanguage: " + data.language;
+
+  } catch (e) {
+    document.getElementById("repoOut").innerText =
+      "❌ Failed to scan repo";
+  }
 }
