@@ -1,42 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AI DevOps Zero-Trust OS v19</title>
+  <title>AI DevOps Autonomous Agent v20</title>
 </head>
 
-<body style="background:#0f0f0f;color:#fff;font-family:Arial;padding:20px;">
+<body style="background:#0d0d0d;color:#fff;font-family:Arial;padding:20px;">
 
-<h2>AI DevOps Zero-Trust OS v19</h2>
+<h2>AI DevOps Autonomous Agent v20</h2>
 
-<!-- PROJECT -->
 <input id="project" placeholder="Project name (bb-ai-core)" style="width:100%;padding:8px;"><br><br>
 
-<!-- COMMAND -->
-<textarea id="commandInput"
-placeholder="Type or speak: build + test supabase + github"
-style="width:100%;height:80px;"></textarea><br><br>
+<textarea id="input"
+placeholder="Describe project or paste config..."
+style="width:100%;height:90px;"></textarea><br><br>
 
-<button onclick="runCommand()">Run Command</button>
-<button onclick="startVoice()">🎤 Voice</button>
-
-<hr>
-
-<!-- TOKENS (memory only, NOT stored) -->
-<h3>Temporary Token Sandbox (RAM only)</h3>
-
-<input id="githubToken" placeholder="GitHub Token"><br><br>
-<input id="supabaseUrl" placeholder="Supabase URL"><br><br>
-<input id="supabaseKey" placeholder="Supabase Key"><br><br>
-<input id="mongoUri" placeholder="Mongo URI"><br><br>
-
-<button onclick="loadTokens()">Load to Memory</button>
-<button onclick="testTokens()">Test APIs</button>
-<button onclick="wipeTokens()">🗑 Wipe All</button>
+<button onclick="analyze()">Analyze</button>
+<button onclick="autoFix()">Auto-Fix</button>
+<button onclick="generateProject()">Generate Project</button>
 
 <hr>
 
-<h3>Status Log</h3>
-<pre id="log" style="background:#000;height:250px;overflow:auto;padding:10px;"></pre>
+<h3>Status Report</h3>
+<pre id="log" style="background:#000;height:280px;overflow:auto;padding:10px;"></pre>
 
 <script src="app.js"></script>
 
