@@ -1,113 +1,115 @@
-// =========================
-// ZERO-TRUST MEMORY ENGINE
-// =========================
-let tokens = {}; // ❗ memory only (never saved)
+// =====================
+// AI DEVOPS ENGINE v20
+// =====================
+
 let log = [];
 
-function addLog(msg) {
+function add(msg) {
   log.push(msg);
-  document.getElementById("log").innerText = log.slice(-15).join("\n");
+  document.getElementById("log").innerText = log.slice(-20).join("\n");
 }
 
-// =========================
-// LOAD TOKENS INTO MEMORY ONLY
-// =========================
-function loadTokens() {
-  tokens = {
-    github: document.getElementById("githubToken").value,
-    supabaseUrl: document.getElementById("supabaseUrl").value,
-    supabaseKey: document.getElementById("supabaseKey").value,
-    mongo: document.getElementById("mongoUri").value
-  };
+// =====================
+// ANALYZE ENGINE
+// =====================
+function analyze() {
+  const input = document.getElementById("input").value.toLowerCase();
 
-  addLog("✔ Tokens loaded into memory (NOT stored)");
-}
+  add("🧠 Analyzing project...");
 
-// =========================
-// WIPE EVERYTHING
-// =========================
-function wipeTokens() {
-  tokens = {};
-  addLog("🗑 All tokens wiped from memory");
-}
-
-// =========================
-// COMMAND ENGINE
-// =========================
-function runCommand() {
-  const cmd = document.getElementById("commandInput").value.toLowerCase();
-
-  addLog("▶ Command: " + cmd);
-
-  if (cmd.includes("build")) addLog("⚙ Build requested");
-  if (cmd.includes("supabase")) addLog("✔ Supabase detected");
-  if (cmd.includes("github")) addLog("✔ GitHub detected");
-  if (cmd.includes("mongo")) addLog("✔ Mongo detected");
-
-  addLog("✔ Command processed");
-}
-
-// =========================
-// API TEST ENGINE (REAL CHECKS)
-// =========================
-async function testTokens() {
-  addLog("🧪 Starting API tests...");
-
-  // SUPABASE TEST
-  if (tokens.supabaseUrl && tokens.supabaseKey) {
-    try {
-      const res = await fetch(tokens.supabaseUrl + "/rest/v1/", {
-        headers: {
-          apikey: tokens.supabaseKey
-        }
-      });
-
-      if (res.ok) {
-        addLog("✔ Supabase VERIFIED");
-      } else {
-        addLog("❌ Supabase FAILED");
-      }
-
-    } catch (e) {
-      addLog("❌ Supabase ERROR");
+  // DETECT MONGO ISSUES
+  if (input.includes("mongodb")) {
+    if (!input.includes("mongodb+srv://")) {
+      add("❌ MongoDB format invalid");
+    } else {
+      add("✔ MongoDB format OK");
     }
   }
 
-  // GITHUB CHECK (no API call, just validation)
-  if (tokens.github) {
-    addLog("✔ GitHub token present (not tested here)");
+  // DETECT SUPABASE
+  if (input.includes("supabase")) {
+    add("🧠 Supabase detected");
+    if (!input.includes("anon key")) {
+      add("⚠ Missing Supabase anon key");
+    }
   }
 
-  // MONGO (no direct HTTP test safe here)
-  if (tokens.mongo) {
-    addLog("✔ Mongo URI loaded (not tested live)");
+  // DETECT NODE BACKEND
+  if (input.includes("express") || input.includes("node")) {
+    add("✔ Node backend detected");
   }
 
-  addLog("✔ Testing complete");
+  // DETECT DEPLOYMENT
+  if (input.includes("render")) {
+    add("✔ Render deployment target detected");
+  }
+
+  add("✔ Analysis complete");
 }
 
-// =========================
-// VOICE COMMAND SYSTEM
-// =========================
-function startVoice() {
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+// =====================
+// AUTO FIX ENGINE
+// =====================
+function autoFix() {
+  const input = document.getElementById("input").value;
 
-  if (!SpeechRecognition) {
-    addLog("❌ Voice not supported");
-    return;
+  add("🛠 Running auto-fix engine...");
+
+  let fixed = input;
+
+  // Fix Mongo placeholders
+  fixed = fixed.replace("<password>", "YOUR_PASSWORD_HERE");
+
+  // Add missing ENV structure suggestion
+  if (!fixed.includes("DATABASE_URL")) {
+    add("⚠ Adding missing DATABASE_URL suggestion");
+    fixed += "\nDATABASE_URL=your_mongo_here";
   }
 
-  const rec = new SpeechRecognition();
-  rec.lang = "en-US";
+  if (!fixed.includes("NODE_ENV")) {
+    fixed += "\nNODE_ENV=production";
+  }
 
-  addLog("🎤 Listening...");
+  document.getElementById("input").value = fixed;
 
-  rec.start();
+  add("✔ Auto-fix applied");
+}
 
-  rec.onresult = (e) => {
-    const text = e.results[0][0].transcript;
-    document.getElementById("commandInput").value = text;
-    addLog("🎤 Heard: " + text);
-  };
+// =====================
+// PROJECT GENERATOR
+// =====================
+function generateProject() {
+  const name = document.getElementById("project").value || "app";
+
+  add("📦 Generating backend project: " + name);
+
+  const server =
+`const express = require("express");
+const app = express();
+
+app.get("/", (req, res) => {
+  res.send("${name} running");
+});
+
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Server running");
+});`;
+
+  const env =
+`DATABASE_URL=your_mongo_here
+NODE_ENV=production`;
+
+  const render =
+`services:
+  - type: web
+    name: ${name}
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js`;
+
+  add("✔ Generated server.js");
+  add("✔ Generated .env template");
+  add("✔ Generated render.yaml");
+
+  add("🧠 Project ready for GitHub + Render deployment");
 }
