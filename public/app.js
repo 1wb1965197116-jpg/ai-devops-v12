@@ -1,14 +1,29 @@
 // =====================
-// GLOBAL STATE
+// GLOBAL
 // =====================
 let stream;
-let currentFacingMode = "user";
+let facing = "user";
 
 // =====================
-// LOG SYSTEM
+// LOG
 // =====================
 function log(msg) {
   document.getElementById("out").innerText += msg + "\n";
+}
+
+// =====================
+// SEND COMMAND (BRIDGE)
+// =====================
+function sendCommand(action, value = null) {
+  const cmd = {
+    action,
+    value,
+    time: Date.now()
+  };
+
+  localStorage.setItem("ai_devops_command", JSON.stringify(cmd));
+
+  log("📡 Sent → " + action);
 }
 
 // =====================
@@ -17,98 +32,120 @@ function log(msg) {
 function execute() {
   const cmd = document.getElementById("cmd").value.toLowerCase();
 
-  log("▶ Executing: " + cmd);
+  log("▶ " + cmd);
 
-  if (cmd.includes("analyze")) log("🧠 Running analysis engine...");
-  if (cmd.includes("generate")) log("📦 Generating project...");
-  if (cmd.includes("scan")) log("📷 Scan requested...");
-  if (cmd.includes("copy")) copyRoute();
-
-  log("✔ Done");
+  if (cmd.includes("mongo")) sendCommand("extract_mongo");
+  if (cmd.includes("github")) sendCommand("paste_github");
+  if (cmd.includes("deploy")) log("☁ Deploy trigger (manual/API)");
+  if (cmd.includes("scan")) scanOCR();
 }
 
 // =====================
-// COPY ROUTE ENGINE
+// 📋 COPY ROUTE (REAL BRIDGE MODE)
 // =====================
 function copyRoute() {
   const from = document.getElementById("from").value;
   const to = document.getElementById("to").value;
 
-  const store = {
-    "OpenAI Output": "OPENAI_KEY_SAMPLE",
-    "Mongo URI": "mongodb+srv://user:pass@cluster",
-    "Supabase Key": "SUPABASE_ANON_KEY",
-    "GitHub Token": "GH_TOKEN_SAMPLE"
-  };
+  log("📍 Routing: " + from + " → " + to);
 
-  const value = store[from];
+  // STEP 1: Extract from page if needed
+  if (from === "Mongo URI") {
+    sendCommand("extract_mongo");
 
-  if (!value) {
-    log("❌ No value found for " + from);
+    setTimeout(() => {
+      const result = JSON.parse(localStorage.getItem("ai_devops_result") || "{}");
+
+      if (!result.value) {
+        log("❌ No Mongo value found");
+        return;
+      }
+
+      navigator.clipboard.writeText(result.value);
+
+      log("✔ Mongo copied to clipboard");
+
+      routeToDestination(result.value, to);
+
+    }, 1500);
+
     return;
   }
 
+  // Direct route (mock values or OCR/text input)
+  let value = document.getElementById("cmd").value || "VALUE_NOT_FOUND";
+
   navigator.clipboard.writeText(value);
 
-  log("📋 COPY ROUTE EXECUTED");
-  log("FROM: " + from);
-  log("TO: " + to);
-  log("✔ Copied to clipboard");
-
-  if (to === "Render ENV") log("⚙ Render ENV format ready");
-  if (to === "GitHub") log("⚙ GitHub secrets format ready");
-  if (to === "Supabase") log("⚙ Supabase key validated");
-  if (to === "MongoDB Atlas") log("⚙ Mongo connection verified");
+  routeToDestination(value, to);
 }
 
 // =====================
-// CAMERA START
+// DESTINATION HANDLER
+// =====================
+function routeToDestination(value, to) {
+
+  if (to === "GitHub") {
+    sendCommand("paste", value);
+    log("🔐 Ready for GitHub Secrets");
+  }
+
+  if (to === "Render ENV") {
+    sendCommand("paste", "DATABASE_URL=" + value);
+    log("⚙ Sent to Render ENV format");
+  }
+
+  if (to === "Supabase") {
+    sendCommand("paste", value);
+    log("🧬 Supabase value ready");
+  }
+
+  if (to === "MongoDB Atlas") {
+    sendCommand("paste", value);
+    log("🗄 Mongo format ready");
+  }
+}
+
+// =====================
+// CAMERA
 // =====================
 async function startCamera() {
   const video = document.getElementById("video");
 
-  if (stream) stream.getTracks().forEach(t => t.stop());
-
   stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: currentFacingMode }
+    video: { facingMode: facing }
   });
 
   video.srcObject = stream;
-
-  log("📷 Camera started (" + currentFacingMode + ")");
 }
 
 // =====================
 // FLIP CAMERA
 // =====================
 function flipCamera() {
-  currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
+  facing = facing === "user" ? "environment" : "user";
   startCamera();
-  log("🔄 Camera flipped");
 }
 
 // =====================
-// OCR SCAN (REAL)
+// OCR
 // =====================
-async function captureOCR() {
+async function scanOCR() {
   const video = document.getElementById("video");
 
   const canvas = document.createElement("canvas");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
 
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0);
+  canvas.getContext("2d").drawImage(video, 0, 0);
 
-  const image = canvas.toDataURL("image/png");
+  const img = canvas.toDataURL();
 
-  log("🔍 Running OCR...");
+  log("🔍 OCR running...");
 
-  const result = await Tesseract.recognize(image, "eng");
+  const result = await Tesseract.recognize(img, "eng");
 
-  const text = result.data.text;
+  document.getElementById("cmd").value = result.data.text;
 
-  document.getElementById("cmd").value = text;
-
-  log("✔ OCR complete → text loaded into command box");
+  log("✔ OCR complete");
 }
