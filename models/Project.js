@@ -1,11 +1,10 @@
-const mongoose = require("mongoose");
+const mongoose = require("../db");
 
-const ProjectSchema = new mongoose.Schema({
+const Project = mongoose.model("Project", {
   userId: String,
   name: String,
-  mongo: String,
-  apiKeys: String,
-  createdAt: { type: Date, default: Date.now }
+  env: Object,
+  versions: [Object]
 });
 
-module.exports = mongoose.model("Project", ProjectSchema);
+module.exports = Project;
