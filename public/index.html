@@ -1,43 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AI DevOps Agent v22</title>
+  <title>AI DevOps Vision Agent v24</title>
 </head>
 
-<body style="background:#0b0b0b;color:#fff;font-family:Arial;">
+<body style="margin:0;background:#0b0b0b;color:#fff;font-family:Arial;">
 
-<h2 style="padding:10px;">AI DevOps Agent v22</h2>
+<div style="padding:12px;background:#111;">
+  <h2>AI DevOps Vision Agent v24</h2>
+</div>
 
-<div style="display:flex;">
+<div style="display:flex;height:92vh;">
 
-<!-- LEFT -->
-<div style="width:40%;padding:10px;">
+<!-- LEFT PANEL -->
+<div style="width:40%;padding:12px;border-right:1px solid #333;">
+
+  <input id="project"
+    placeholder="Project name (bb-ai-core)"
+    style="width:100%;padding:8px;"><br><br>
 
   <textarea id="input"
-    placeholder="Paste config OR scan OR speak..."
+    placeholder="Paste config OR speak OR scan camera..."
     style="width:100%;height:120px;"></textarea><br><br>
 
-  <button onclick="analyze()">Analyze</button>
-  <button onclick="autoFix()">Auto-Fix</button>
+  <button onclick="analyze()">🧠 Analyze</button>
+  <button onclick="autoFix()">🛠 Auto-Fix</button>
+  <button onclick="generate()">📦 Generate</button>
 
   <hr>
 
-  <h3>📷 Camera Scan</h3>
+  <h3>📷 Camera Input</h3>
 
-  <video id="video" width="100%" autoplay></video><br>
+  <video id="video" autoplay style="width:100%;border:1px solid #333;"></video><br><br>
+
   <button onclick="startCamera()">Start Camera</button>
-  <button onclick="capture()">Capture → Analyze</button>
+  <button onclick="flipCamera()">🔄 Flip Camera</button>
+  <button onclick="capture()">📸 Capture</button>
+
+  <p style="font-size:12px;color:#aaa;">
+    (Capture sends frame to AI pipeline for OCR-ready processing)
+  </p>
 
 </div>
 
-<!-- RIGHT -->
-<div style="width:60%;padding:10px;">
+<!-- RIGHT PANEL -->
+<div style="width:60%;padding:12px;">
 
   <h3>🧠 AI Output</h3>
-  <pre id="output" style="background:#000;height:200px;overflow:auto;"></pre>
+  <pre id="output" style="background:#000;height:200px;overflow:auto;padding:10px;"></pre>
 
-  <h3>📦 Generated Fix</h3>
-  <pre id="gen" style="background:#000;height:200px;overflow:auto;"></pre>
+  <h3>📦 Generated Project</h3>
+  <pre id="generated" style="background:#000;height:250px;overflow:auto;padding:10px;"></pre>
 
 </div>
 
